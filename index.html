@@ -5,6 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Obsidianで開く</title>
+<script>
+// できるだけ早く（画面が出る前に）Obsidianへ自動転送する。
+// 見出しジャンプは Advanced URI プラグインが要る＝h があれば adv-uri を使う。
+(function () {
+  try {
+    var p = new URLSearchParams(location.hash.slice(1));
+    var vault = p.get("v") || "life-hub";
+    var file = p.get("f") || "";
+    var head = p.get("h") || "";
+    if (!file) { return; }
+    var openUri = "obsidian://open?vault=" + encodeURIComponent(vault) +
+                  "&file=" + encodeURIComponent(file);
+    var jumpUri = head
+      ? "obsidian://adv-uri?vault=" + encodeURIComponent(vault) +
+        "&filepath=" + encodeURIComponent(file) +
+        "&heading=" + encodeURIComponent(head)
+      : openUri;
+    // ページ全体で使えるように控えておく（ボタン用）
+    window.__open = openUri;
+    window.__jump = jumpUri;
+    window.__file = file;
+    window.__head = head;
+    // 自動転送（節ジャンプ優先）。iOSの「開きますか?」確認は仕様上ここで出る。
+    location.href = jumpUri;
+  } catch (e) {}
+})();
+</script>
 <style>
   :root { color-scheme: light dark; }
   body { font-family: -apple-system, "Hiragino Sans", sans-serif;
@@ -15,45 +42,38 @@
     .file { background: #292524 !important; color: #d6d3d1 !important; }
     .hint { background: #292524 !important; }
   }
-  h1 { font-size: 1.1rem; margin: 0.5rem 0 1rem; }
-  .file { display: inline-block; margin: 0 auto 1.5rem; padding: 0.55rem 0.9rem;
-          background: #e7e5e4; border-radius: 8px; font-size: 0.8rem;
+  h1 { font-size: 1.05rem; margin: 0.3rem 0 0.9rem; }
+  .file { display: inline-block; margin: 0 auto 1.3rem; padding: 0.5rem 0.85rem;
+          background: #e7e5e4; border-radius: 8px; font-size: 0.78rem;
           word-break: break-all; max-width: 100%; }
-  a.btn { display: block; margin: 0 auto; padding: 1.1rem 1rem; max-width: 420px;
-          background: #7c3aed; color: #fff; text-decoration: none;
-          border-radius: 12px; font-size: 1.2rem; font-weight: 700; }
-  a.btn:active { background: #6d28d9; }
-  .hint { margin: 1.8rem auto 0; max-width: 420px; padding: 0.9rem 1rem;
-          background: #ececeb; border-radius: 10px; font-size: 0.82rem;
+  a.btn { display: block; margin: 0.6rem auto; padding: 1rem; max-width: 420px;
+          text-decoration: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; }
+  a.primary { background: #7c3aed; color: #fff; }
+  a.sub { background: #d6d3d1; color: #1c1917; font-size: 0.95rem; font-weight: 600; }
+  .hint { margin: 1.6rem auto 0; max-width: 420px; padding: 0.9rem 1rem;
+          background: #ececeb; border-radius: 10px; font-size: 0.8rem;
           text-align: left; opacity: 0.9; }
   .hint b { color: #7c3aed; }
 </style>
 </head>
 <body>
-<h1>📓 Obsidianで開く</h1>
-<div class="file" id="file">（ファイル指定がありません）</div>
-<a class="btn" id="go" href="#" hidden>📱 Obsidianで開く</a>
-<div class="hint" id="hint" hidden>
-  ボタンで開かないときは、この画面を <b>Safari で開いて</b>からもう一度ボタンを押してください。<br>
-  （Slackの画面では、右上か下の <b>「Safari で開く」</b>／ブラウザのアイコンを押す）<br><br>
-  それでも開かないときは、iPhoneに <b>Obsidian</b> が入っているか、保管庫の名前が <b>life-hub</b> か、
-  Working Copy で <b>Pull（最新を取り込む）</b>を済ませたかを確認してください。
+<h1>📓 Obsidianへ転送しています…</h1>
+<div class="file" id="file">—</div>
+<a class="btn primary" id="jump" href="#">📍 変更箇所を開く</a>
+<a class="btn sub" id="open" href="#">先頭から開く</a>
+<div class="hint">
+  自動で開かないときは上のボタンを押してください。<br>
+  <b>📍 変更箇所を開く</b>は <b>Advanced URI</b> プラグインが要ります（未導入なら「先頭から開く」を使用）。<br>
+  最新が出ないときは <b>Working Copy で Pull（同期）</b>してから開き直してください。
 </div>
 <script>
 (function () {
-  var params = new URLSearchParams(location.hash.slice(1));
-  var vault = params.get("v") || "life-hub";
-  var file = params.get("f") || "";
-  if (!file) { return; }
-  var uri = "obsidian://open?vault=" + encodeURIComponent(vault) +
-            "&file=" + encodeURIComponent(file);
-  document.getElementById("file").textContent = file;
-  var btn = document.getElementById("go");
-  btn.href = uri;
-  btn.hidden = false;
-  document.getElementById("hint").hidden = false;
-  // ※自動転送はしない：アプリ内ブラウザだと「開けません」の警告が出て
-  //   混乱するため。ユーザーがボタンを1回押した操作で開くのが最も確実。
+  var f = document.getElementById("file");
+  var j = document.getElementById("jump");
+  var o = document.getElementById("open");
+  if (window.__file) { f.textContent = window.__file + (window.__head ? "  › " + window.__head : ""); }
+  if (window.__jump) { j.href = window.__jump; }
+  if (window.__open) { o.href = window.__open; }
 })();
 </script>
 </body>
