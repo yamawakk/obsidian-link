@@ -4,35 +4,41 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Obsidianへ転送</title>
+<title>Obsidianで開く</title>
 <style>
+  :root { color-scheme: light dark; }
   body { font-family: -apple-system, "Hiragino Sans", sans-serif;
-         margin: 0; padding: 2.5rem 1.5rem; text-align: center;
-         background: #f5f5f4; color: #1c1917; }
+         margin: 0; padding: 2rem 1.3rem 3rem; text-align: center;
+         background: #f5f5f4; color: #1c1917; line-height: 1.7; }
   @media (prefers-color-scheme: dark) {
     body { background: #1c1917; color: #e7e5e4; }
-    .file { background: #292524 !important; }
+    .file { background: #292524 !important; color: #d6d3d1 !important; }
+    .hint { background: #292524 !important; }
   }
-  h1 { font-size: 1.15rem; }
-  .file { display: inline-block; margin: 0.8rem auto; padding: 0.5rem 0.9rem;
-          background: #e7e5e4; border-radius: 8px; font-size: 0.85rem;
+  h1 { font-size: 1.1rem; margin: 0.5rem 0 1rem; }
+  .file { display: inline-block; margin: 0 auto 1.5rem; padding: 0.55rem 0.9rem;
+          background: #e7e5e4; border-radius: 8px; font-size: 0.8rem;
           word-break: break-all; max-width: 100%; }
-  a.btn { display: inline-block; margin-top: 1rem; padding: 0.9rem 2rem;
+  a.btn { display: block; margin: 0 auto; padding: 1.1rem 1rem; max-width: 420px;
           background: #7c3aed; color: #fff; text-decoration: none;
-          border-radius: 10px; font-size: 1.05rem; font-weight: 600; }
-  p.note { margin-top: 2rem; font-size: 0.75rem; opacity: 0.6; line-height: 1.6; }
+          border-radius: 12px; font-size: 1.2rem; font-weight: 700; }
+  a.btn:active { background: #6d28d9; }
+  .hint { margin: 1.8rem auto 0; max-width: 420px; padding: 0.9rem 1rem;
+          background: #ececeb; border-radius: 10px; font-size: 0.82rem;
+          text-align: left; opacity: 0.9; }
+  .hint b { color: #7c3aed; }
 </style>
 </head>
 <body>
-<h1>📓 Obsidian へ転送します</h1>
+<h1>📓 Obsidianで開く</h1>
 <div class="file" id="file">（ファイル指定がありません）</div>
-<div><a class="btn" id="go" href="#" hidden>📱 Obsidianで開く</a></div>
-<p class="note" id="note">
-  このページは「Slackのリンク → Obsidianアプリ」への乗り換え口です。<br>
-  ファイル名は「#」より後ろに載っているため、この端末の中でだけ処理され、<br>
-  どのサーバーにも送信されません（このページに保存機能はありません）。<br>
-  自動で開かないときは上の紫のボタンを押してください。
-</p>
+<a class="btn" id="go" href="#" hidden>📱 Obsidianで開く</a>
+<div class="hint" id="hint" hidden>
+  ボタンで開かないときは、この画面を <b>Safari で開いて</b>からもう一度ボタンを押してください。<br>
+  （Slackの画面では、右上か下の <b>「Safari で開く」</b>／ブラウザのアイコンを押す）<br><br>
+  それでも開かないときは、iPhoneに <b>Obsidian</b> が入っているか、保管庫の名前が <b>life-hub</b> か、
+  Working Copy で <b>Pull（最新を取り込む）</b>を済ませたかを確認してください。
+</div>
 <script>
 (function () {
   var params = new URLSearchParams(location.hash.slice(1));
@@ -45,8 +51,9 @@
   var btn = document.getElementById("go");
   btn.href = uri;
   btn.hidden = false;
-  // 自動転送（ブラウザが拒否したときのためにボタンも残す）
-  location.href = uri;
+  document.getElementById("hint").hidden = false;
+  // ※自動転送はしない：アプリ内ブラウザだと「開けません」の警告が出て
+  //   混乱するため。ユーザーがボタンを1回押した操作で開くのが最も確実。
 })();
 </script>
 </body>
